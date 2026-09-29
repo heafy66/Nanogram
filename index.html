@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0, user-scalable=no">
+
+<title>Nanogram</title>
+
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#0b0d10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nanogram">
+
+<link rel="apple-touch-icon" href="icon-180.png">
+
+<style>
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background: #0f0f10;
+    color: #f5f5f7;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 45px 12px 35px;
+    user-select: none;
+}
+
+.header {
+    width: 100%;
+    max-width: 430px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 7px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+.reset {
+    background: #242426;
+    color: white;
+    border: 1px solid #38383b;
+    border-radius: 12px;
+    padding: 9px 14px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.reset:active {
+    transform: scale(.94);
+}
+
+.subtitle {
+    width: 100%;
+    max-width: 430px;
+    color: #8e8e93;
+    font-size: 15px;
+    margin-bottom: 22px;
+}
+
+.stats {
+    width: 100%;
+    max-width: 430px;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.stat {
+    flex: 1;
+    background: #19191b;
+    border: 1px solid #29292c;
+    border-radius: 14px;
+    padding: 11px 5px;
+    text-align: center;
+}
+
+.stat-label {
+    color: #8e8e93;
+    font-size: 10px;
+    margin-bottom: 4px;
+    letter-spacing: .6px;
+}
+
+.stat-value {
+    font-size: 17px;
+    font-weight: 650;
+}
+
+.puzzle {
+    display: grid;
+
+    grid-template-columns:
+        45px
+        repeat(5, minmax(45px, 58px));
+
+    grid-template-rows:
+        45px
+        repeat(5, minmax(45px, 58px));
+
+    gap: 2px;
+}
+
+.corner {
+    background: transparent;
+}
+
+.col-clue,
+.row-clue {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #a8a8ad;
+
+    font-weight: 650;
+    font-size: 15px;
+}
+
+.col-clue {
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-bottom: 6px;
+}
+
+.row-clue {
+    justify-content: flex-end;
+    padding-right: 9px;
+}
+
+.cell {
+    width: 100%;
+    aspect-ratio: 1;
+
+    background: #202023;
+
+    border: 1px solid #36363a;
+    border-radius: 5px;
+
+    position: relative;
+
+    transition:
+        transform .09s ease,
+        background .12s ease,
+        border-color .12s ease;
+}
+
+.cell:active {
+    transform: scale(.91);
+}
+
+.cell.filled {
+    background: #f5f5f7;
+    border-color: #f5f5f7;
+}
+
+.cell.marked {
+    background: #202023;
+}
+
+.cell.marked::after {
+    content: "×";
+
+    position: absolute;
+    inset: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #6f6f75;
+
+    font-size: 27px;
+    font-weight: 400;
+}
+
+.cell.wrong {
+    background: #5c2523;
+    border-color: #71302d;
+}
+
+.footer {
+    margin-top: 25px;
+
+    color: #636368;
+
+    font-size: 12px;
+
+    text-align: center;
+}
+
+.best {
+    color: #8e8e93;
+}
+
+/* Completion screen */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(10, 10, 11, .82);
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 25px;
+
+    z-index: 100;
+}
+
+.overlay.show {
+    display: flex;
+}
+
+.complete {
+    width: 100%;
+    max-width: 350px;
+
+    background: #1c1c1e;
+
+    border: 1px solid #38383b;
+
+    border-radius: 24px;
+
+    padding: 30px;
+
+    text-align: center;
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.45);
+
+    animation: pop .25s ease;
+}
+
+@keyframes pop {
+
+    from {
+        transform: scale(.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.complete-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.complete h2 {
+    margin: 0 0 8px;
+
+    font-size: 27px;
+}
+
+.complete p {
+    color: #8e8e93;
+
+    line-height: 1.7;
+
+    margin: 0 0 24px;
+}
+
+.complete strong {
+    color: #f5f5f7;
+}
+
+.new-record {
+    color: #ffd60a;
+    font-weight: 650;
+}
+
+.next-puzzle {
+    width: 100%;
+
+    border: none;
+    border-radius: 14px;
+
+    padding: 14px;
+
+    background: #f5f5f7;
+    color: #111;
+
+    font-size: 16px;
+    font-weight: 650;
+}
+
+.next-puzzle:active {
+    transform: scale(.97);
+}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="header">
+
+    <h1>Nanogram</h1>
+
+    <button
+        class="reset"
+        onclick="resetGame()">
+        Reset
+    </button>
+
+</div>
+
+
+<div class="subtitle">
+    Reveal the hidden picture
+</div>
+
+
+<div class="stats">
+
+    <div class="stat">
+
+        <div class="stat-label">
+            TIME
+        </div>
+
+        <div
+            class="stat-value"
+            id="timer">
+            00:00
+        </div>
+
+    </div>
+
+
+    <div class="stat">
+
+        <div class="stat-label">
+            MOVES
+        </div>
+
+        <div
+            class="stat-value"
+            id="moves">
+            0
+        </div>
+
+    </div>
+
+
+    <div class="stat">
+
+        <div class="stat-label">
+            MISTAKES
+        </div>
+
+        <div
+            class="stat-value"
+            id="mistakes">
+            0
+        </div>
+
+    </div>
+
+</div>
+
+
+<div
+    class="puzzle"
+    id="puzzle">
+</div>
+
+
+<div class="footer">
+
+    Tap to fill · Hold to mark
+
+    <br>
+
+    <span class="best">
+        Best: <span id="bestScore">--:--</span>
+    </span>
+
+</div>
+
+
+<div
+    class="overlay"
+    id="overlay">
+
+    <div class="complete">
+
+        <div class="complete-icon">
+            ✓
+        </div>
+
+        <h2>
+            Puzzle Complete
+        </h2>
+
+        <p>
+
+            Time:
+            <strong id="finalTime">
+                00:00
+            </strong>
+
+            <br>
+
+            Moves:
+            <strong id="finalMoves">
+                0
+            </strong>
+
+            <br>
+
+            Mistakes:
+            <strong id="finalMistakes">
+                0
+            </strong>
+
+            <br>
+
+            <span
+                class="new-record"
+                id="recordMessage"
+                style="display:none;">
+                New Best Time
+            </span>
+
+        </p>
+
+
+        <button
+            class="next-puzzle"
+            onclick="nextPuzzle()">
+
+            Next Puzzle
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+/* =========================
+   PUZZLE LIBRARY
+========================= */
+
+const puzzles = [
+
+    [
+        [0,1,1,0,0],
+        [1,1,1,1,0],
+        [0,1,1,1,0],
+        [0,0,1,0,0],
+        [0,0,1,0,0]
+    ],
+
+    [
+        [0,1,0,1,0],
+        [1,1,1,1,1],
+        [1,1,1,1,1],
+        [0,1,1,1,0],
+        [0,1,1,1,0]
+    ],
+
+    [
+        [1,0,0,0,1],
+        [0,1,0,1,0],
+        [0,0,1,0,0],
+        [0,1,0,1,0],
+        [1,0,0,0,1]
+    ],
+
+    [
+        [0,1,0,1,0],
+        [1,1,1,1,1],
+        [0,1,1,1,0],
+        [0,0,1,0,0],
+        [0,0,1,0,0]
+    ],
+
+    [
+        [0,1,1,1,0],
+        [1,0,1,0,1],
+        [1,1,1,1,1],
+        [0,1,1,1,0],
+        [0,1,0,1,0]
+    ]
+
+];
+
+
+const size = 5;
+
+
+/* =========================
+   ELEMENTS
+========================= */
+
+const puzzleElement =
+    document.getElementById("puzzle");
+
+const timerElement =
+    document.getElementById("timer");
+
+const movesElement =
+    document.getElementById("moves");
+
+const mistakesElement =
+    document.getElementById("mistakes");
+
+const overlay =
+    document.getElementById("overlay");
+
+const bestScoreElement =
+    document.getElementById("bestScore");
+
+const recordMessage =
+    document.getElementById("recordMessage");
+
+
+/* =========================
+   GAME STATE
+========================= */
+
+let solution;
+
+let moves = 0;
+
+let mistakes = 0;
+
+let seconds = 0;
+
+let timerRunning = false;
+
+let timerInterval;
+
+let currentPuzzleIndex = -1;
+
+
+/* =========================
+   TOUCH / HOLD STATE
+========================= */
+
+let holdTimer = null;
+
+let holdTriggered = false;
+
+const HOLD_TIME = 450;
+
+
+/* =========================
+   AUDIO
+========================= */
+
+let audioContext = null;
+
+
+function getAudioContext() {
+
+    if (!audioContext) {
+
+        const AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+        if (!AudioContext) {
+            return null;
+        }
+
+        audioContext =
+            new AudioContext();
+    }
+
+    if (audioContext.state === "suspended") {
+        audioContext.resume();
+    }
+
+    return audioContext;
+}
+
+
+function playTone(
+    frequency,
+    duration,
+    volume,
+    type = "sine",
+    delay = 0
+) {
+
+    const ctx = getAudioContext();
+
+    if (!ctx) return;
+
+    const oscillator =
+        ctx.createOscillator();
+
+    const gain =
+        ctx.createGain();
+
+    oscillator.type = type;
+
+    oscillator.frequency.value =
+        frequency;
+
+    oscillator.connect(gain);
+
+    gain.connect(ctx.destination);
+
+    const start =
+        ctx.currentTime + delay;
+
+    gain.gain.setValueAtTime(
+        0.0001,
+        start
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        Math.max(volume, 0.0001),
+        start + 0.01
+    );
+
+    gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        start + duration
+    );
+
+    oscillator.start(start);
+
+    oscillator.stop(
+        start + duration + 0.02
+    );
+}
+
+
+/* Randomized fill sound */
+
+function playFillSound() {
+
+    const frequencies = [
+        480,
+        510,
+        540,
+        570,
+        600,
+        630
+    ];
+
+    const frequency =
+        frequencies[
+            Math.floor(
+                Math.random() *
+                frequencies.length
+            )
+        ];
+
+    const volume =
+        0.025 +
+        Math.random() * 0.015;
+
+    playTone(
+        frequency,
+        0.055,
+        volume,
+        "sine"
+    );
+}
+
+
+/* Randomized mark sound */
+
+function playMarkSound() {
+
+    const frequencies = [
+        280,
+        300,
+        320,
+        340,
+        360
+    ];
+
+    const frequency =
+        frequencies[
+            Math.floor(
+                Math.random() *
+                frequencies.length
+            )
+        ];
+
+    playTone(
+        frequency,
+        0.045,
+        0.018,
+        "sine"
+    );
+}
+
+
+/* Very quiet error */
+
+function playErrorSound() {
+
+    const frequencies = [
+        150,
+        165,
+        180
+    ];
+
+    const frequency =
+        frequencies[
+            Math.floor(
+                Math.random() *
+                frequencies.length
+            )
+        ];
+
+    playTone(
+        frequency,
+        0.07,
+        0.009,
+        "sine"
+    );
+}
+
+
+/* Completion melody */
+
+function playCompleteSound() {
+
+    const notes = [
+        523.25,
+        659.25,
+        783.99,
+        1046.50
+    ];
+
+    notes.forEach(
+        (note, index) => {
+
+            playTone(
+                note,
+                0.16,
+                0.035,
+                "sine",
+                index * 0.075
+            );
+
+        }
+    );
+}
+
+
+/* =========================
+   HAPTICS
+========================= */
+
+function haptic(type) {
+
+    if (!navigator.vibrate) {
+        return;
+    }
+
+    if (type === "light") {
+
+        navigator.vibrate(7);
+
+    } else if (type === "error") {
+
+        navigator.vibrate([
+            10,
+            25,
+            10
+        ]);
+
+    } else if (type === "success") {
+
+        navigator.vibrate([
+            12,
+            35,
+            18,
+            35,
+            25
+        ]);
+    }
+}
+
+
+/* =========================
+   CLUE GENERATION
+========================= */
+
+function getLineClue(line) {
+
+    const groups = [];
+
+    let count = 0;
+
+    for (const value of line) {
+
+        if (value === 1) {
+
+            count++;
+
+        } else if (count > 0) {
+
+            groups.push(count);
+
+            count = 0;
+        }
+    }
+
+    if (count > 0) {
+        groups.push(count);
+    }
+
+    return groups.length
+        ? groups.join(" ")
+        : "0";
+}
+
+
+function getRowClue(row) {
+
+    return getLineClue(
+        solution[row]
+    );
+}
+
+
+function getColumnClue(column) {
+
+    const values = [];
+
+    for (let row = 0; row < size; row++) {
+
+        values.push(
+            solution[row][column]
+        );
+    }
+
+    return getLineClue(values);
+}
+
+
+/* =========================
+   RANDOM PUZZLE
+========================= */
+
+function choosePuzzle() {
+
+    let index;
+
+    do {
+
+        index =
+            Math.floor(
+                Math.random() *
+                puzzles.length
+            );
+
+    } while (
+        puzzles.length > 1 &&
+        index === currentPuzzleIndex
+    );
+
+    currentPuzzleIndex = index;
+
+    solution =
+        puzzles[index];
+}
+
+
+/* =========================
+   BOARD
+========================= */
+
+function createBoard() {
+
+    puzzleElement.innerHTML = "";
+
+    const corner =
+        document.createElement("div");
+
+    corner.className = "corner";
+
+    puzzleElement.appendChild(
+        corner
+    );
+
+
+    /* Column clues */
+
+    for (
+        let column = 0;
+        column < size;
+        column++
+    ) {
+
+        const clue =
+            document.createElement("div");
+
+        clue.className = "col-clue";
+
+        clue.textContent =
+            getColumnClue(column);
+
+        puzzleElement.appendChild(
+            clue
+        );
+    }
+
+
+    /* Rows */
+
+    for (
+        let row = 0;
+        row < size;
+        row++
+    ) {
+
+        const clue =
+            document.createElement("div");
+
+        clue.className = "row-clue";
+
+        clue.textContent =
+            getRowClue(row);
+
+        puzzleElement.appendChild(
+            clue
+        );
+
+
+        for (
+            let column = 0;
+            column < size;
+            column++
+        ) {
+
+            const cell =
+                document.createElement("div");
+
+            cell.className = "cell";
+
+
+            /* Touch start */
+
+            cell.addEventListener(
+                "touchstart",
+                event => {
+
+                    event.preventDefault();
+
+                    beginHold(
+                        cell,
+                        row,
+                        column
+                    );
+                },
+                { passive: false }
+            );
+
+
+            /* Touch end */
+
+            cell.addEventListener(
+                "touchend",
+                event => {
+
+                    event.preventDefault();
+
+                    endHold(
+                        cell,
+                        row,
+                        column
+                    );
+                },
+                { passive: false }
+            );
+
+
+            /* Touch cancelled */
+
+            cell.addEventListener(
+                "touchcancel",
+                event => {
+
+                    event.preventDefault();
+
+                    cancelHold();
+
+                },
+                { passive: false }
+            );
+
+
+            /* Mouse support */
+
+            cell.addEventListener(
+                "mousedown",
+                event => {
+
+                    event.preventDefault();
+
+                    beginHold(
+                        cell,
+                        row,
+                        column
+                    );
+                }
+            );
+
+
+            cell.addEventListener(
+                "mouseup",
+                event => {
+
+                    event.preventDefault();
+
+                    endHold(
+                        cell,
+                        row,
+                        column
+                    );
+                }
+            );
+
+
+            cell.addEventListener(
+                "mouseleave",
+                cancelHold
+            );
+
+
+            puzzleElement.appendChild(
+                cell
+            );
+        }
+    }
+}
+
+
+/* =========================
+   HOLD / TAP SYSTEM
+========================= */
+
+function beginHold(
+    cell,
+    row,
+    column
+) {
+
+    cancelHold();
+
+    holdTriggered = false;
+
+    holdTimer =
+        setTimeout(() => {
+
+            holdTriggered = true;
+
+            markCell(
+                cell
+            );
+
+        }, HOLD_TIME);
+}
+
+
+function endHold(
+    cell,
+    row,
+    column
+) {
+
+    if (holdTimer) {
+
+        clearTimeout(
+            holdTimer
+        );
+
+        holdTimer = null;
+    }
+
+
+    if (holdTriggered) {
+
+        holdTriggered = false;
+
+        return;
+    }
+
+
+    fillCell(
+        cell,
+        row,
+        column
+    );
+}
+
+
+function cancelHold() {
+
+    if (holdTimer) {
+
+        clearTimeout(
+            holdTimer
+        );
+
+        holdTimer = null;
+    }
+}
+
+
+/* =========================
+   FILL
+========================= */
+
+function fillCell(
+    cell,
+    row,
+    column
+) {
+
+    startTimer();
+
+    moves++;
+
+    movesElement.textContent =
+        moves;
+
+
+    /* Cycle marked -> filled */
+
+    if (
+        cell.classList.contains(
+            "marked"
+        )
+    ) {
+
+        cell.classList.remove(
+            "marked"
+        );
+
+    }
+
+
+    if (
+        cell.classList.contains(
+            "filled"
+        )
+    ) {
+
+        cell.classList.remove(
+            "filled"
+        );
+
+        playFillSound();
+
+        haptic("light");
+
+        return;
+    }
+
+
+    cell.classList.add(
+        "filled"
+    );
+
+
+    const correct =
+        solution[row][column] === 1;
+
+
+    if (!correct) {
+
+        mistakes++;
+
+        mistakesElement.textContent =
+            mistakes;
+
+        cell.classList.add(
+            "wrong"
+        );
+
+        playErrorSound();
+
+        haptic("error");
+
+        setTimeout(() => {
+
+            cell.classList.remove(
+                "wrong"
+            );
+
+        }, 220);
+
+    } else {
+
+        playFillSound();
+
+        haptic("light");
+    }
+
+
+    checkWin();
+}
+
+
+/* =========================
+   MARK
+========================= */
+
+function markCell(cell) {
+
+    startTimer();
+
+    moves++;
+
+    movesElement.textContent =
+        moves;
+
+
+    if (
+        cell.classList.contains(
+            "filled"
+        )
+    ) {
+
+        cell.classList.remove(
+            "filled"
+        );
+    }
+
+
+    if (
+        cell.classList.contains(
+            "marked"
+        )
+    ) {
+
+        cell.classList.remove(
+            "marked"
+        );
+
+    } else {
+
+        cell.classList.add(
+            "marked"
+        );
+    }
+
+
+    playMarkSound();
+
+    haptic("light");
+}
+
+
+/* =========================
+   TIMER
+========================= */
+
+function startTimer() {
+
+    if (timerRunning) {
+        return;
+    }
+
+    timerRunning = true;
+
+    timerInterval =
+        setInterval(() => {
+
+            seconds++;
+
+            updateTimer();
+
+        }, 1000);
+}
+
+
+function updateTimer() {
+
+    const minutes =
+        Math.floor(
+            seconds / 60
+        );
+
+    const secs =
+        seconds % 60;
+
+    timerElement.textContent =
+        String(minutes).padStart(
+            2,
+            "0"
+        ) +
+        ":" +
+        String(secs).padStart(
+            2,
+            "0"
+        );
+}
+
+
+function stopTimer() {
+
+    clearInterval(
+        timerInterval
+    );
+
+    timerRunning = false;
+}
+
+
+/* =========================
+   HIGH SCORE
+========================= */
+
+function getBestScore() {
+
+    const saved =
+        localStorage.getItem(
+            "nanogramBestTime"
+        );
+
+    if (saved === null) {
+        return null;
+    }
+
+    return Number(saved);
+}
+
+
+function updateBestDisplay() {
+
+    const best =
+        getBestScore();
+
+    if (best === null) {
+
+        bestScoreElement.textContent =
+            "--:--";
+
+        return;
+    }
+
+    const minutes =
+        Math.floor(
+            best / 60
+        );
+
+    const secondsPart =
+        best % 60;
+
+    bestScoreElement.textContent =
+        String(minutes).padStart(
+            2,
+            "0"
+        ) +
+        ":" +
+        String(secondsPart).padStart(
+            2,
+            "0"
+        );
+}
+
+
+function saveHighScore() {
+
+    const previous =
+        getBestScore();
+
+    if (
+        previous === null ||
+        seconds < previous
+    ) {
+
+        localStorage.setItem(
+            "nanogramBestTime",
+            String(seconds)
+        );
+
+        return true;
+    }
+
+    return false;
+}
+
+
+/* =========================
+   WIN CHECK
+========================= */
+
+function checkWin() {
+
+    const cells =
+        document.querySelectorAll(
+            ".cell"
+        );
+
+
+    for (
+        let i = 0;
+        i < cells.length;
+        i++
+    ) {
+
+        const row =
+            Math.floor(
+                i / size
+            );
+
+        const column =
+            i % size;
+
+        const shouldBeFilled =
+            solution[row][column] === 1;
+
+        const isFilled =
+            cells[i].classList.contains(
+                "filled"
+            );
+
+
+        if (
+            shouldBeFilled !==
+            isFilled
+        ) {
+
+            return;
+        }
+    }
+
+
+    stopTimer();
+
+
+    const newRecord =
+        saveHighScore();
+
+
+    updateBestDisplay();
+
+
+    document.getElementById(
+        "finalTime"
+    ).textContent =
+        timerElement.textContent;
+
+
+    document.getElementById(
+        "finalMoves"
+    ).textContent =
+        moves;
+
+
+    document.getElementById(
+        "finalMistakes"
+    ).textContent =
+        mistakes;
+
+
+    if (newRecord) {
+
+        recordMessage.style.display =
+            "inline";
+
+    } else {
+
+        recordMessage.style.display =
+            "none";
+    }
+
+
+    playCompleteSound();
+
+    haptic("success");
+
+
+    setTimeout(() => {
+
+        overlay.classList.add(
+            "show"
+        );
+
+    }, 350);
+}
+
+
+/* =========================
+   RESET
+========================= */
+
+function resetGame() {
+
+    stopTimer();
+
+    cancelHold();
+
+    moves = 0;
+
+    mistakes = 0;
+
+    seconds = 0;
+
+    timerRunning = false;
+
+
+    timerElement.textContent =
+        "00:00";
+
+    movesElement.textContent =
+        "0";
+
+    mistakesElement.textContent =
+        "0";
+
+
+    overlay.classList.remove(
+        "show"
+    );
+
+
+    choosePuzzle();
+
+    createBoard();
+
+    updateBestDisplay();
+}
+
+
+/* =========================
+   NEXT PUZZLE
+========================= */
+
+function nextPuzzle() {
+
+    overlay.classList.remove(
+        "show"
+    );
+
+    resetGame();
+}
+
+
+/* =========================
+   START
+========================= */
+
+choosePuzzle();
+
+createBoard();
+
+updateBestDisplay();
+
+</script>
+
+</body>
+</html>
