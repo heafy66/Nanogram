@@ -1,1599 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0,
-               maximum-scale=1.0, user-scalable=no">
-
-<title>Nanogram</title>
-
-<link rel="manifest" href="manifest.json">
-
-<meta name="theme-color" content="#0b0d10">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Nanogram">
-
-<link rel="apple-touch-icon" href="icon-180.png">
-
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nonogram">
+<title>Nonogram</title>
 <style>
-
-* {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-}
-
-html,
-body {
-    margin: 0;
-    padding: 0;
-    background: #0f0f10;
-    color: #f5f5f7;
-    font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "SF Pro Display",
-        sans-serif;
-}
-
-body {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 45px 12px 35px;
-    user-select: none;
-}
-
-.header {
-    width: 100%;
-    max-width: 430px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 7px;
-}
-
-h1 {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: -1px;
-}
-
-.reset {
-    background: #242426;
-    color: white;
-    border: 1px solid #38383b;
-    border-radius: 12px;
-    padding: 9px 14px;
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.reset:active {
-    transform: scale(.94);
-}
-
-.subtitle {
-    width: 100%;
-    max-width: 430px;
-    color: #8e8e93;
-    font-size: 15px;
-    margin-bottom: 22px;
-}
-
-.stats {
-    width: 100%;
-    max-width: 430px;
-    display: flex;
-    gap: 8px;
-    margin-bottom: 24px;
-}
-
-.stat {
-    flex: 1;
-    background: #19191b;
-    border: 1px solid #29292c;
-    border-radius: 14px;
-    padding: 11px 5px;
-    text-align: center;
-}
-
-.stat-label {
-    color: #8e8e93;
-    font-size: 10px;
-    margin-bottom: 4px;
-    letter-spacing: .6px;
-}
-
-.stat-value {
-    font-size: 17px;
-    font-weight: 650;
-}
-
-.puzzle {
-    display: grid;
-
-    grid-template-columns:
-        45px
-        repeat(5, minmax(45px, 58px));
-
-    grid-template-rows:
-        45px
-        repeat(5, minmax(45px, 58px));
-
-    gap: 2px;
-}
-
-.corner {
-    background: transparent;
-}
-
-.col-clue,
-.row-clue {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: #a8a8ad;
-
-    font-weight: 650;
-    font-size: 15px;
-}
-
-.col-clue {
-    flex-direction: column;
-    justify-content: flex-end;
-    padding-bottom: 6px;
-}
-
-.row-clue {
-    justify-content: flex-end;
-    padding-right: 9px;
-}
-
-.cell {
-    width: 100%;
-    aspect-ratio: 1;
-
-    background: #202023;
-
-    border: 1px solid #36363a;
-    border-radius: 5px;
-
-    position: relative;
-
-    transition:
-        transform .09s ease,
-        background .12s ease,
-        border-color .12s ease;
-}
-
-.cell:active {
-    transform: scale(.91);
-}
-
-.cell.filled {
-    background: #f5f5f7;
-    border-color: #f5f5f7;
-}
-
-.cell.marked {
-    background: #202023;
-}
-
-.cell.marked::after {
-    content: "×";
-
-    position: absolute;
-    inset: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    color: #6f6f75;
-
-    font-size: 27px;
-    font-weight: 400;
-}
-
-.cell.wrong {
-    background: #5c2523;
-    border-color: #71302d;
-}
-
-.footer {
-    margin-top: 25px;
-
-    color: #636368;
-
-    font-size: 12px;
-
-    text-align: center;
-}
-
-.best {
-    color: #8e8e93;
-}
-
-/* Completion screen */
-
-.overlay {
-    position: fixed;
-    inset: 0;
-
-    background: rgba(10, 10, 11, .82);
-
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-
-    display: none;
-
-    align-items: center;
-    justify-content: center;
-
-    padding: 25px;
-
-    z-index: 100;
-}
-
-.overlay.show {
-    display: flex;
-}
-
-.complete {
-    width: 100%;
-    max-width: 350px;
-
-    background: #1c1c1e;
-
-    border: 1px solid #38383b;
-
-    border-radius: 24px;
-
-    padding: 30px;
-
-    text-align: center;
-
-    box-shadow:
-        0 20px 60px rgba(0,0,0,.45);
-
-    animation: pop .25s ease;
-}
-
-@keyframes pop {
-
-    from {
-        transform: scale(.9);
-        opacity: 0;
-    }
-
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.complete-icon {
-    font-size: 42px;
-    margin-bottom: 10px;
-}
-
-.complete h2 {
-    margin: 0 0 8px;
-
-    font-size: 27px;
-}
-
-.complete p {
-    color: #8e8e93;
-
-    line-height: 1.7;
-
-    margin: 0 0 24px;
-}
-
-.complete strong {
-    color: #f5f5f7;
-}
-
-.new-record {
-    color: #ffd60a;
-    font-weight: 650;
-}
-
-.next-puzzle {
-    width: 100%;
-
-    border: none;
-    border-radius: 14px;
-
-    padding: 14px;
-
-    background: #f5f5f7;
-    color: #111;
-
-    font-size: 16px;
-    font-weight: 650;
-}
-
-.next-puzzle:active {
-    transform: scale(.97);
-}
-
+:root{--bg:#f2f3f5;--card:#fff;--text:#14171c;--muted:#7b8390;--line:#e4e6ea;--empty:#eef0f3;--empty2:#e2e5ea;--edge:#cdd2da;--accent:#3b5bdb;--on:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1013;--card:#171a1f;--text:#eceef2;--muted:#808793;--line:#262a31;--empty:#20242b;--empty2:#292e36;--edge:#3a404a;--accent:#7d93f5;--on:#0e1013}}
+:root[data-theme="dark"]{--bg:#0e1013;--card:#171a1f;--text:#eceef2;--muted:#808793;--line:#262a31;--empty:#20242b;--empty2:#292e36;--edge:#3a404a;--accent:#7d93f5;--on:#0e1013}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+main{max-width:480px;margin:0 auto;padding:20px 16px 36px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:6px 4px 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:flex;gap:4px;padding:4px;background:var(--empty);border-radius:14px;margin:0 0 16px}
+.seg.below{margin:18px 0 0}
+.seg button{flex:1 1 0;min-height:40px;padding:0 10px;color:var(--text);background:transparent;border:0;border-radius:10px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--on);font-weight:600}
+.bar{display:flex;align-items:flex-end;gap:26px;margin:0 2px 20px;font-variant-numeric:tabular-nums}
+.bar .k{display:block;color:var(--muted);font-size:13px}
+.bar #time{font-size:30px;font-weight:700;line-height:1.1;letter-spacing:-.01em}
+.bar #best{font-size:20px;font-weight:600;line-height:1.5}
+.bar button{margin-left:auto;min-height:40px;padding:0 14px;color:var(--text);background:var(--empty);border:0;border-radius:12px}
+.bar button[aria-pressed="false"]{color:var(--muted)}
+#wrap{display:grid;grid-template-columns:max-content max-content;justify-content:center;font-variant-numeric:tabular-nums}
+#cols{display:flex}
+#rows{display:flex;flex-direction:column}
+.cc{width:var(--u);display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:calc(var(--u)*.2 + 9px);font-size:max(9px,calc(var(--u)*.52));line-height:1.15;font-weight:500}
+.rc{height:var(--u);display:flex;justify-content:flex-end;align-items:center;gap:calc(var(--u)*.3);padding-right:calc(var(--u)*.2 + 9px);font-size:max(9px,calc(var(--u)*.52));font-weight:500}
+.cc.done,.rc.done{color:var(--muted);opacity:.5;font-weight:400}
+#board{display:grid;touch-action:none;border-radius:10px;box-shadow:0 0 0 6px var(--card),0 0 0 7.5px var(--edge);transition:box-shadow .2s}
+#board.solved{box-shadow:0 0 0 6px var(--card),0 0 0 8px var(--accent)}
+.cell{position:relative;isolation:isolate;width:var(--u);height:var(--u);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:calc(var(--u)*.7);line-height:1}
+.cell::before{content:"";position:absolute;inset:max(1px,calc(var(--u)*.07));border-radius:calc(var(--u)*.24);background:var(--empty);z-index:-1;transition:background .1s}
+.cell.alt::before{background:var(--empty2)}
+.cell.f::before{background:var(--accent)}
+.msg{min-height:24px;margin:20px 0 0;text-align:center;font-weight:600;color:var(--accent)}
+.act{display:flex;gap:8px;margin-top:10px}
+.act button{flex:1 1 0;min-height:46px;padding:0 10px;color:var(--text);background:transparent;border:1px solid var(--line);border-radius:12px}
+.act button:disabled{opacity:.4}
+.act #new{background:var(--accent);border-color:var(--accent);color:var(--on);font-weight:600}
+.link{display:block;margin:10px auto 0;min-height:44px;padding:0 12px;color:var(--muted);background:transparent;border:0;text-decoration:underline}
 </style>
 </head>
-
-
 <body>
-
-<div class="header">
-
-    <h1>Nanogram</h1>
-
-    <button
-        class="reset"
-        onclick="resetGame()">
-        Reset
-    </button>
-
+<main>
+<h1>Nonogram</h1>
+<div class="card">
+<div class="seg" id="size"></div>
+<div class="bar"><div><span class="k">Time</span><span id="time">0:00</span></div><div><span class="k">Best</span><span id="best">&ndash;</span></div><button type="button" id="snd" aria-pressed="true">Sound on</button></div>
+<div id="wrap"><div></div><div id="cols"></div><div id="rows"></div><div id="board"></div></div>
+<p class="msg" id="msg" aria-live="polite"></p>
+<div class="seg below" id="mode"></div>
+<div class="act"><button type="button" id="undo">Undo</button><button type="button" id="clear">Clear</button><button type="button" id="new">New puzzle</button></div>
+<button type="button" class="link" id="reset">Reset best times</button>
 </div>
-
-
-<div class="subtitle">
-    Reveal the hidden picture
-</div>
-
-
-<div class="stats">
-
-    <div class="stat">
-
-        <div class="stat-label">
-            TIME
-        </div>
-
-        <div
-            class="stat-value"
-            id="timer">
-            00:00
-        </div>
-
-    </div>
-
-
-    <div class="stat">
-
-        <div class="stat-label">
-            MOVES
-        </div>
-
-        <div
-            class="stat-value"
-            id="moves">
-            0
-        </div>
-
-    </div>
-
-
-    <div class="stat">
-
-        <div class="stat-label">
-            MISTAKES
-        </div>
-
-        <div
-            class="stat-value"
-            id="mistakes">
-            0
-        </div>
-
-    </div>
-
-</div>
-
-
-<div
-    class="puzzle"
-    id="puzzle">
-</div>
-
-
-<div class="footer">
-
-    Tap to fill · Hold to mark
-
-    <br>
-
-    <span class="best">
-        Best: <span id="bestScore">--:--</span>
-    </span>
-
-</div>
-
-
-<div
-    class="overlay"
-    id="overlay">
-
-    <div class="complete">
-
-        <div class="complete-icon">
-            ✓
-        </div>
-
-        <h2>
-            Puzzle Complete
-        </h2>
-
-        <p>
-
-            Time:
-            <strong id="finalTime">
-                00:00
-            </strong>
-
-            <br>
-
-            Moves:
-            <strong id="finalMoves">
-                0
-            </strong>
-
-            <br>
-
-            Mistakes:
-            <strong id="finalMistakes">
-                0
-            </strong>
-
-            <br>
-
-            <span
-                class="new-record"
-                id="recordMessage"
-                style="display:none;">
-                New Best Time
-            </span>
-
-        </p>
-
-
-        <button
-            class="next-puzzle"
-            onclick="nextPuzzle()">
-
-            Next Puzzle
-
-        </button>
-
-    </div>
-
-</div>
-
-
+</main>
 <script>
+let S={n:10,sol:[],cells:[],mode:1,t:0,snd:true},B={},run=false,last=0,prevDone=0,lastSnd=0,ac,undo=[],solved=false,u=24,rowC=[],colC=[],rowEl=[],colEl=[],cellEl=[],stroke=null,paintV=0;
+const $=id=>document.getElementById(id);
+const board=$('board');
 
+function runs(line){const r=[];let c=0;line.forEach(v=>{if(v===1)c++;else if(c){r.push(c);c=0}});if(c)r.push(c);return r.length?r:[0]}
+const rowOf=(a,i)=>a.slice(i*S.n,(i+1)*S.n);
+const colOf=(a,j)=>{const r=[];for(let i=0;i<S.n;i++)r.push(a[i*S.n+j]);return r};
 
-/* =========================
-   PUZZLE LIBRARY
-========================= */
+function newGame(n){
+ S.n=n;S.cells=new Array(n*n).fill(0);
+ S.sol=S.cells.map(()=>Math.random()<.6?1:0);
+ for(let i=0;i<n;i++){
+  if(!rowOf(S.sol,i).includes(1))S.sol[i*n+Math.floor(Math.random()*n)]=1;
+  if(!colOf(S.sol,i).includes(1))S.sol[Math.floor(Math.random()*n)*n+i]=1;
+ }
+ undo=[];S.t=0;run=false;build();
+}
+function save(){try{localStorage.setItem('nonogram',JSON.stringify(S))}catch(e){}}
+function saveB(){try{localStorage.setItem('nonogram-best',JSON.stringify(B))}catch(e){}}
 
-const puzzles = [
-
-    [
-        [0,1,1,0,0],
-        [1,1,1,1,0],
-        [0,1,1,1,0],
-        [0,0,1,0,0],
-        [0,0,1,0,0]
-    ],
-
-    [
-        [0,1,0,1,0],
-        [1,1,1,1,1],
-        [1,1,1,1,1],
-        [0,1,1,1,0],
-        [0,1,1,1,0]
-    ],
-
-    [
-        [1,0,0,0,1],
-        [0,1,0,1,0],
-        [0,0,1,0,0],
-        [0,1,0,1,0],
-        [1,0,0,0,1]
-    ],
-
-    [
-        [0,1,0,1,0],
-        [1,1,1,1,1],
-        [0,1,1,1,0],
-        [0,0,1,0,0],
-        [0,0,1,0,0]
-    ],
-
-    [
-        [0,1,1,1,0],
-        [1,0,1,0,1],
-        [1,1,1,1,1],
-        [0,1,1,1,0],
-        [0,1,0,1,0]
-    ]
-
-];
-
-
-const size = 5;
-
-
-/* =========================
-   ELEMENTS
-========================= */
-
-const puzzleElement =
-    document.getElementById("puzzle");
-
-const timerElement =
-    document.getElementById("timer");
-
-const movesElement =
-    document.getElementById("moves");
-
-const mistakesElement =
-    document.getElementById("mistakes");
-
-const overlay =
-    document.getElementById("overlay");
-
-const bestScoreElement =
-    document.getElementById("bestScore");
-
-const recordMessage =
-    document.getElementById("recordMessage");
-
-
-/* =========================
-   GAME STATE
-========================= */
-
-let solution;
-
-let moves = 0;
-
-let mistakes = 0;
-
-let seconds = 0;
-
-let timerRunning = false;
-
-let timerInterval;
-
-let currentPuzzleIndex = -1;
-
-
-/* =========================
-   TOUCH / HOLD STATE
-========================= */
-
-let holdTimer = null;
-
-let holdTriggered = false;
-
-const HOLD_TIME = 450;
-
-
-/* =========================
-   AUDIO
-========================= */
-
-let audioContext = null;
-
-
-function getAudioContext() {
-
-    if (!audioContext) {
-
-        const AudioContext =
-            window.AudioContext ||
-            window.webkitAudioContext;
-
-        if (!AudioContext) {
-            return null;
-        }
-
-        audioContext =
-            new AudioContext();
-    }
-
-    if (audioContext.state === "suspended") {
-        audioContext.resume();
-    }
-
-    return audioContext;
+function build(){
+ const n=S.n;
+ rowC=[];colC=[];
+ for(let i=0;i<n;i++){rowC.push(runs(rowOf(S.sol,i)));colC.push(runs(colOf(S.sol,i)))}
+ const left=Math.max(...rowC.map(c=>c.length));
+ const avail=Math.min($('wrap').parentElement.clientWidth-50,440);
+ u=Math.max(12,Math.min(44,Math.floor(avail/(n+left+.6))));
+ $('wrap').style.setProperty('--u',u+'px');
+ const cols=$('cols'),rows=$('rows');
+ cols.innerHTML='';rows.innerHTML='';board.innerHTML='';
+ colEl=colC.map(c=>{const d=document.createElement('div');d.className='cc';d.innerHTML=c.map(v=>'<span>'+v+'</span>').join('');cols.appendChild(d);return d});
+ rowEl=rowC.map(c=>{const d=document.createElement('div');d.className='rc';d.innerHTML=c.map(v=>'<span>'+v+'</span>').join('');rows.appendChild(d);return d});
+ board.style.gridTemplateColumns='repeat('+n+',var(--u))';
+ cellEl=[];
+ for(let i=0;i<n*n;i++){
+  const d=document.createElement('div'),r=Math.floor(i/n),c=i%n;
+  d.className='cell'+((((r/5)|0)+((c/5)|0))%2?' alt':'');
+  board.appendChild(d);cellEl.push(d);
+ }
+ S.cells.forEach((_,i)=>paint(i));
+ sync();
+}
+function paint(i){
+ const v=S.cells[i],d=cellEl[i];
+ d.classList.toggle('f',v===1);
+ d.textContent=v===2?'\u00d7':'';
+}
+function sync(quiet){
+ let ok=true,cnt=0;
+ for(let i=0;i<S.n;i++){
+  const a=runs(rowOf(S.cells,i)).join()===rowC[i].join();
+  const b=runs(colOf(S.cells,i)).join()===colC[i].join();
+  rowEl[i].classList.toggle('done',a);colEl[i].classList.toggle('done',b);
+  if(a)cnt++;if(b)cnt++;
+  if(!a||!b)ok=false;
+ }
+ const was=solved;solved=ok;board.classList.toggle('solved',ok);
+ if(ok&&!was&&!quiet)onSolve();
+ else if(!quiet&&cnt>prevDone)chime();
+ prevDone=cnt;
+ if(!ok)$('msg').textContent='';
+ else if(quiet)$('msg').textContent='Solved in '+fmt(S.t);
+ showBest();showTime();
+ $('undo').disabled=!undo.length;
+ document.querySelectorAll('#mode button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===S.mode)));
+ document.querySelectorAll('#size button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===S.n)));
+ $('snd').textContent=S.snd?'Sound on':'Sound off';$('snd').setAttribute('aria-pressed',String(S.snd));
+ save();
 }
 
-
-function playTone(
-    frequency,
-    duration,
-    volume,
-    type = "sine",
-    delay = 0
-) {
-
-    const ctx = getAudioContext();
-
-    if (!ctx) return;
-
-    const oscillator =
-        ctx.createOscillator();
-
-    const gain =
-        ctx.createGain();
-
-    oscillator.type = type;
-
-    oscillator.frequency.value =
-        frequency;
-
-    oscillator.connect(gain);
-
-    gain.connect(ctx.destination);
-
-    const start =
-        ctx.currentTime + delay;
-
-    gain.gain.setValueAtTime(
-        0.0001,
-        start
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-        Math.max(volume, 0.0001),
-        start + 0.01
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-        0.0001,
-        start + duration
-    );
-
-    oscillator.start(start);
-
-    oscillator.stop(
-        start + duration + 0.02
-    );
+const fmt=ms=>{const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+function showTime(){$('time').textContent=fmt(S.t)}
+function showBest(){$('best').textContent=(B[S.n]?fmt(B[S.n]):'\u2013')}
+function start(){if(!run&&!solved){run=true;last=performance.now()}}
+function tick(){if(run){const t=performance.now();S.t+=t-last;last=t;showTime()}}
+function stop(){tick();run=false}
+function tone(f,d,type,vol,at){
+ if(!S.snd)return;
+ try{
+  ac=ac||new(window.AudioContext||window.webkitAudioContext)();
+  if(ac.state==='suspended')ac.resume();
+  const t=ac.currentTime+(at||0),o=ac.createOscillator(),g=ac.createGain();
+  o.type=type;o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+.02);
+ }catch(e){}
 }
-
-
-/* Randomized fill sound */
-
-function playFillSound() {
-
-    const frequencies = [
-        480,
-        510,
-        540,
-        570,
-        600,
-        630
-    ];
-
-    const frequency =
-        frequencies[
-            Math.floor(
-                Math.random() *
-                frequencies.length
-            )
-        ];
-
-    const volume =
-        0.025 +
-        Math.random() * 0.015;
-
-    playTone(
-        frequency,
-        0.055,
-        volume,
-        "sine"
-    );
+const chime=()=>{tone(660,.14,'sine',.12);tone(880,.2,'sine',.12,.09)};
+const win=()=>[523,659,784,1047].forEach((f,i)=>tone(f,i===3?.6:.25,'sine',.14,i*.12));
+function onSolve(){
+ stop();
+ let m='Solved in '+fmt(S.t);
+ if(S.t>0&&(!B[S.n]||S.t<B[S.n])){B[S.n]=S.t;saveB();m+='. New best time!'}
+ $('msg').textContent=m;showBest();win();
 }
-
-
-/* Randomized mark sound */
-
-function playMarkSound() {
-
-    const frequencies = [
-        280,
-        300,
-        320,
-        340,
-        360
-    ];
-
-    const frequency =
-        frequencies[
-            Math.floor(
-                Math.random() *
-                frequencies.length
-            )
-        ];
-
-    playTone(
-        frequency,
-        0.045,
-        0.018,
-        "sine"
-    );
+function cellAt(e){
+ const r=board.getBoundingClientRect(),c=Math.floor((e.clientX-r.left)/u),w=Math.floor((e.clientY-r.top)/u);
+ return(c<0||w<0||c>=S.n||w>=S.n)?-1:w*S.n+c;
 }
-
-
-/* Very quiet error */
-
-function playErrorSound() {
-
-    const frequencies = [
-        150,
-        165,
-        180
-    ];
-
-    const frequency =
-        frequencies[
-            Math.floor(
-                Math.random() *
-                frequencies.length
-            )
-        ];
-
-    playTone(
-        frequency,
-        0.07,
-        0.009,
-        "sine"
-    );
-}
-
-
-/* Completion melody */
-
-function playCompleteSound() {
-
-    const notes = [
-        523.25,
-        659.25,
-        783.99,
-        1046.50
-    ];
-
-    notes.forEach(
-        (note, index) => {
-
-            playTone(
-                note,
-                0.16,
-                0.035,
-                "sine",
-                index * 0.075
-            );
-
-        }
-    );
-}
-
-
-/* =========================
-   HAPTICS
-========================= */
-
-function haptic(type) {
-
-    if (!navigator.vibrate) {
-        return;
-    }
-
-    if (type === "light") {
-
-        navigator.vibrate(7);
-
-    } else if (type === "error") {
-
-        navigator.vibrate([
-            10,
-            25,
-            10
-        ]);
-
-    } else if (type === "success") {
-
-        navigator.vibrate([
-            12,
-            35,
-            18,
-            35,
-            25
-        ]);
-    }
-}
-
-
-/* =========================
-   CLUE GENERATION
-========================= */
-
-function getLineClue(line) {
-
-    const groups = [];
-
-    let count = 0;
-
-    for (const value of line) {
-
-        if (value === 1) {
-
-            count++;
-
-        } else if (count > 0) {
-
-            groups.push(count);
-
-            count = 0;
-        }
-    }
-
-    if (count > 0) {
-        groups.push(count);
-    }
-
-    return groups.length
-        ? groups.join(" ")
-        : "0";
-}
-
-
-function getRowClue(row) {
-
-    return getLineClue(
-        solution[row]
-    );
-}
-
-
-function getColumnClue(column) {
-
-    const values = [];
-
-    for (let row = 0; row < size; row++) {
-
-        values.push(
-            solution[row][column]
-        );
-    }
-
-    return getLineClue(values);
-}
-
-
-/* =========================
-   RANDOM PUZZLE
-========================= */
-
-function choosePuzzle() {
-
-    let index;
-
-    do {
-
-        index =
-            Math.floor(
-                Math.random() *
-                puzzles.length
-            );
-
-    } while (
-        puzzles.length > 1 &&
-        index === currentPuzzleIndex
-    );
-
-    currentPuzzleIndex = index;
-
-    solution =
-        puzzles[index];
-}
-
-
-/* =========================
-   BOARD
-========================= */
-
-function createBoard() {
-
-    puzzleElement.innerHTML = "";
-
-    const corner =
-        document.createElement("div");
-
-    corner.className = "corner";
-
-    puzzleElement.appendChild(
-        corner
-    );
-
-
-    /* Column clues */
-
-    for (
-        let column = 0;
-        column < size;
-        column++
-    ) {
-
-        const clue =
-            document.createElement("div");
-
-        clue.className = "col-clue";
-
-        clue.textContent =
-            getColumnClue(column);
-
-        puzzleElement.appendChild(
-            clue
-        );
-    }
-
-
-    /* Rows */
-
-    for (
-        let row = 0;
-        row < size;
-        row++
-    ) {
-
-        const clue =
-            document.createElement("div");
-
-        clue.className = "row-clue";
-
-        clue.textContent =
-            getRowClue(row);
-
-        puzzleElement.appendChild(
-            clue
-        );
-
-
-        for (
-            let column = 0;
-            column < size;
-            column++
-        ) {
-
-            const cell =
-                document.createElement("div");
-
-            cell.className = "cell";
-
-
-            /* Touch start */
-
-            cell.addEventListener(
-                "touchstart",
-                event => {
-
-                    event.preventDefault();
-
-                    beginHold(
-                        cell,
-                        row,
-                        column
-                    );
-                },
-                { passive: false }
-            );
-
-
-            /* Touch end */
-
-            cell.addEventListener(
-                "touchend",
-                event => {
-
-                    event.preventDefault();
-
-                    endHold(
-                        cell,
-                        row,
-                        column
-                    );
-                },
-                { passive: false }
-            );
-
-
-            /* Touch cancelled */
-
-            cell.addEventListener(
-                "touchcancel",
-                event => {
-
-                    event.preventDefault();
-
-                    cancelHold();
-
-                },
-                { passive: false }
-            );
-
-
-            /* Mouse support */
-
-            cell.addEventListener(
-                "mousedown",
-                event => {
-
-                    event.preventDefault();
-
-                    beginHold(
-                        cell,
-                        row,
-                        column
-                    );
-                }
-            );
-
-
-            cell.addEventListener(
-                "mouseup",
-                event => {
-
-                    event.preventDefault();
-
-                    endHold(
-                        cell,
-                        row,
-                        column
-                    );
-                }
-            );
-
-
-            cell.addEventListener(
-                "mouseleave",
-                cancelHold
-            );
-
-
-            puzzleElement.appendChild(
-                cell
-            );
-        }
-    }
-}
-
-
-/* =========================
-   HOLD / TAP SYSTEM
-========================= */
-
-function beginHold(
-    cell,
-    row,
-    column
-) {
-
-    cancelHold();
-
-    holdTriggered = false;
-
-    holdTimer =
-        setTimeout(() => {
-
-            holdTriggered = true;
-
-            markCell(
-                cell
-            );
-
-        }, HOLD_TIME);
-}
-
-
-function endHold(
-    cell,
-    row,
-    column
-) {
-
-    if (holdTimer) {
-
-        clearTimeout(
-            holdTimer
-        );
-
-        holdTimer = null;
-    }
-
-
-    if (holdTriggered) {
-
-        holdTriggered = false;
-
-        return;
-    }
-
-
-    fillCell(
-        cell,
-        row,
-        column
-    );
-}
-
-
-function cancelHold() {
-
-    if (holdTimer) {
-
-        clearTimeout(
-            holdTimer
-        );
-
-        holdTimer = null;
-    }
-}
-
-
-/* =========================
-   FILL
-========================= */
-
-function fillCell(
-    cell,
-    row,
-    column
-) {
-
-    startTimer();
-
-    moves++;
-
-    movesElement.textContent =
-        moves;
-
-
-    /* Cycle marked -> filled */
-
-    if (
-        cell.classList.contains(
-            "marked"
-        )
-    ) {
-
-        cell.classList.remove(
-            "marked"
-        );
-
-    }
-
-
-    if (
-        cell.classList.contains(
-            "filled"
-        )
-    ) {
-
-        cell.classList.remove(
-            "filled"
-        );
-
-        playFillSound();
-
-        haptic("light");
-
-        return;
-    }
-
-
-    cell.classList.add(
-        "filled"
-    );
-
-
-    const correct =
-        solution[row][column] === 1;
-
-
-    if (!correct) {
-
-        mistakes++;
-
-        mistakesElement.textContent =
-            mistakes;
-
-        cell.classList.add(
-            "wrong"
-        );
-
-        playErrorSound();
-
-        haptic("error");
-
-        setTimeout(() => {
-
-            cell.classList.remove(
-                "wrong"
-            );
-
-        }, 220);
-
-    } else {
-
-        playFillSound();
-
-        haptic("light");
-    }
-
-
-    checkWin();
-}
-
-
-/* =========================
-   MARK
-========================= */
-
-function markCell(cell) {
-
-    startTimer();
-
-    moves++;
-
-    movesElement.textContent =
-        moves;
-
-
-    if (
-        cell.classList.contains(
-            "filled"
-        )
-    ) {
-
-        cell.classList.remove(
-            "filled"
-        );
-    }
-
-
-    if (
-        cell.classList.contains(
-            "marked"
-        )
-    ) {
-
-        cell.classList.remove(
-            "marked"
-        );
-
-    } else {
-
-        cell.classList.add(
-            "marked"
-        );
-    }
-
-
-    playMarkSound();
-
-    haptic("light");
-}
-
-
-/* =========================
-   TIMER
-========================= */
-
-function startTimer() {
-
-    if (timerRunning) {
-        return;
-    }
-
-    timerRunning = true;
-
-    timerInterval =
-        setInterval(() => {
-
-            seconds++;
-
-            updateTimer();
-
-        }, 1000);
-}
-
-
-function updateTimer() {
-
-    const minutes =
-        Math.floor(
-            seconds / 60
-        );
-
-    const secs =
-        seconds % 60;
-
-    timerElement.textContent =
-        String(minutes).padStart(
-            2,
-            "0"
-        ) +
-        ":" +
-        String(secs).padStart(
-            2,
-            "0"
-        );
-}
-
-
-function stopTimer() {
-
-    clearInterval(
-        timerInterval
-    );
-
-    timerRunning = false;
-}
-
-
-/* =========================
-   HIGH SCORE
-========================= */
-
-function getBestScore() {
-
-    const saved =
-        localStorage.getItem(
-            "nanogramBestTime"
-        );
-
-    if (saved === null) {
-        return null;
-    }
-
-    return Number(saved);
-}
-
-
-function updateBestDisplay() {
-
-    const best =
-        getBestScore();
-
-    if (best === null) {
-
-        bestScoreElement.textContent =
-            "--:--";
-
-        return;
-    }
-
-    const minutes =
-        Math.floor(
-            best / 60
-        );
-
-    const secondsPart =
-        best % 60;
-
-    bestScoreElement.textContent =
-        String(minutes).padStart(
-            2,
-            "0"
-        ) +
-        ":" +
-        String(secondsPart).padStart(
-            2,
-            "0"
-        );
-}
-
-
-function saveHighScore() {
-
-    const previous =
-        getBestScore();
-
-    if (
-        previous === null ||
-        seconds < previous
-    ) {
-
-        localStorage.setItem(
-            "nanogramBestTime",
-            String(seconds)
-        );
-
-        return true;
-    }
-
-    return false;
-}
-
-
-/* =========================
-   WIN CHECK
-========================= */
-
-function checkWin() {
-
-    const cells =
-        document.querySelectorAll(
-            ".cell"
-        );
-
-
-    for (
-        let i = 0;
-        i < cells.length;
-        i++
-    ) {
-
-        const row =
-            Math.floor(
-                i / size
-            );
-
-        const column =
-            i % size;
-
-        const shouldBeFilled =
-            solution[row][column] === 1;
-
-        const isFilled =
-            cells[i].classList.contains(
-                "filled"
-            );
-
-
-        if (
-            shouldBeFilled !==
-            isFilled
-        ) {
-
-            return;
-        }
-    }
-
-
-    stopTimer();
-
-
-    const newRecord =
-        saveHighScore();
-
-
-    updateBestDisplay();
-
-
-    document.getElementById(
-        "finalTime"
-    ).textContent =
-        timerElement.textContent;
-
-
-    document.getElementById(
-        "finalMoves"
-    ).textContent =
-        moves;
-
-
-    document.getElementById(
-        "finalMistakes"
-    ).textContent =
-        mistakes;
-
-
-    if (newRecord) {
-
-        recordMessage.style.display =
-            "inline";
-
-    } else {
-
-        recordMessage.style.display =
-            "none";
-    }
-
-
-    playCompleteSound();
-
-    haptic("success");
-
-
-    setTimeout(() => {
-
-        overlay.classList.add(
-            "show"
-        );
-
-    }, 350);
-}
-
-
-/* =========================
-   RESET
-========================= */
-
-function resetGame() {
-
-    stopTimer();
-
-    cancelHold();
-
-    moves = 0;
-
-    mistakes = 0;
-
-    seconds = 0;
-
-    timerRunning = false;
-
-
-    timerElement.textContent =
-        "00:00";
-
-    movesElement.textContent =
-        "0";
-
-    mistakesElement.textContent =
-        "0";
-
-
-    overlay.classList.remove(
-        "show"
-    );
-
-
-    choosePuzzle();
-
-    createBoard();
-
-    updateBestDisplay();
-}
-
-
-/* =========================
-   NEXT PUZZLE
-========================= */
-
-function nextPuzzle() {
-
-    overlay.classList.remove(
-        "show"
-    );
-
-    resetGame();
-}
-
-
-/* =========================
-   START
-========================= */
-
-choosePuzzle();
-
-createBoard();
-
-updateBestDisplay();
-
+function setCell(i,v){if(S.cells[i]===v)return;stroke.push([i,S.cells[i]]);S.cells[i]=v;paint(i);const t=performance.now();if(t-lastSnd>35){lastSnd=t;tone(v===1?520:v===2?300:380,.07,v===2?'square':'triangle',v===2?.05:.12)}}
+board.addEventListener('pointerdown',e=>{
+ if(solved)return;
+ const i=cellAt(e);if(i<0)return;
+ e.preventDefault();board.setPointerCapture(e.pointerId);
+ start();stroke=[];paintV=S.cells[i]===S.mode?0:S.mode;setCell(i,paintV);
+});
+board.addEventListener('pointermove',e=>{
+ if(!stroke)return;
+ const i=cellAt(e);if(i>=0)setCell(i,paintV);
+});
+const end=()=>{if(!stroke)return;if(stroke.length)undo.push(stroke);stroke=null;sync()};
+board.addEventListener('pointerup',end);
+board.addEventListener('pointercancel',end);
+
+$('undo').onclick=()=>{const s=undo.pop();if(!s)return;s.reverse().forEach(p=>{S.cells[p[0]]=p[1];paint(p[0])});sync()};
+$('clear').onclick=()=>{const s=[];S.cells.forEach((v,i)=>{if(v){s.push([i,v]);S.cells[i]=0;paint(i)}});if(s.length)undo.push(s);sync()};
+$('new').onclick=()=>newGame(S.n);
+$('snd').onclick=()=>{S.snd=!S.snd;sync(true);tone(660,.08,'sine',.12)};
+let rst;$('reset').onclick=function(){
+ if(this.dataset.arm){B={};saveB();delete this.dataset.arm;this.textContent='Reset best times';clearTimeout(rst);showBest();return}
+ this.dataset.arm=1;this.textContent='Tap again to reset';
+ rst=setTimeout(()=>{delete this.dataset.arm;this.textContent='Reset best times'},3000);
+};
+
+[5,10,15].forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent=n+'\u00d7'+n;b.dataset.v=n;b.onclick=()=>newGame(n);$('size').appendChild(b)});
+[[1,'Fill'],[2,'Cross']].forEach(o=>{const b=document.createElement('button');b.type='button';b.textContent=o[1];b.dataset.v=o[0];b.onclick=()=>{S.mode=o[0];sync()};$('mode').appendChild(b)});
+
+try{
+ const ic=document.createElement('canvas');ic.width=ic.height=180;const q=ic.getContext('2d');
+ q.fillStyle='#3b5bdb';q.fillRect(0,0,180,180);q.fillStyle='#fff';
+ ['00100','01110','11111','01110','00100'].forEach((r,y)=>[...r].forEach((v,x)=>{if(v==='1'){q.beginPath();if(q.roundRect)q.roundRect(32+x*23,32+y*23,21,21,6);else q.rect(32+x*23,32+y*23,21,21);q.fill()}}));
+ const l=document.createElement('link');l.rel='apple-touch-icon';l.href=ic.toDataURL('image/png');document.head.appendChild(l);
+}catch(e){}
+
+try{
+ try{B=JSON.parse(localStorage.getItem('nonogram-best')||'{}')}catch(e){}
+ const d=JSON.parse(localStorage.getItem('nonogram')||'null');
+ if(d&&[5,10,15].includes(d.n)&&d.sol.length===d.n*d.n&&d.cells.length===d.n*d.n){S=Object.assign({mode:1,t:0,snd:true},d);build()}else newGame(10);
+}catch(e){newGame(10)}
+setInterval(tick,250);
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stop();save()}});
+window.addEventListener('pagehide',()=>{stop();save()});
+let rt;window.addEventListener('resize',()=>{cancelAnimationFrame(rt);rt=requestAnimationFrame(build)});
 </script>
-
 </body>
 </html>
